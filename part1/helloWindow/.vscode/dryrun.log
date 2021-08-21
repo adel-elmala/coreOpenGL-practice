@@ -1,5 +1,5 @@
-make helloWindow -f "/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/part1/helloWindow/Makefile" --dry-run --keep-going --print-directory
-make: Entering directory '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/part1/helloWindow'
-make: 'helloWindow' is up to date.
-make: Leaving directory '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/part1/helloWindow'
+make -f "/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile" --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow'
+g++ -Wall -pedantic -g -I /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/glad/include helloWindow.cpp /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/glad/src/glad.c -o helloWindow -lglfw3 -lGL  -lX11 -lpthread -lXrandr -lXi -ldl
+make: Leaving directory '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow'
  
