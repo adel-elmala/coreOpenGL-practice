@@ -45,9 +45,10 @@ void initTriangleGpuMem(void)
     //                      0.5f, -0.5f, 0.0f,
     //                      0.0f, 0.5f, 0.0f};
     float verticies1[] = {
-        -1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f // first triangle
+        // position        // color
+        -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.7f,
+        0.0f, 0.0f, 0.0f, 0.1f, 1.0f, 0.9f,
+        0.0f, 1.0f, 0.0f, 0.8f, 0.6f, 1.0f // first triangle
     };
 
     float verticies2[] = {
@@ -62,8 +63,10 @@ void initTriangleGpuMem(void)
     glBindBuffer(GL_ARRAY_BUFFER, triangle1_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(verticies1), verticies1, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3*sizeof(float)));
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -87,9 +90,12 @@ void initTriangleShaders()
 {
     const char *const vShaderSource = "#version 330 core\n\
         layout(location = 0) in vec3 aPos;\n\
+        layout(location = 1) in vec3 aColor;\n\
+        out vec3 pixelColor;\n\
         void main()\n\
         {\
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\
+            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n\
+            pixelColor = aColor;\n\
         }\0";
 
     unsigned int vShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -106,10 +112,12 @@ void initTriangleShaders()
     }
 
     const char *const fShaderSource = "#version 330 core\n\
+        in vec3 pixelColor;\n\
         out vec4 FragColor;\n\
         void main()\n\
         {\n\
-            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n\
+            // FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n\
+            FragColor = vec4(pixelColor, 1.0f);\n\
         }\0";
     unsigned int fShaderID = 0;
     fShaderID = glCreateShader(GL_FRAGMENT_SHADER);
@@ -148,9 +156,11 @@ void initTriangle2Shaders()
 {
     const char *vShaderSource = "#version 330 core\n\
         layout(location = 0) in vec3 aPos;\n\
+        // out vec4 vertexColor;\n\
         void main()\n\
         {\
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\
+            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n\
+            // vertexColor = vec4(0.9,0.2,0.2,1.0);\n\
         }\0";
 
     unsigned int vShader = glCreateShader(GL_VERTEX_SHADER);
@@ -167,10 +177,12 @@ void initTriangle2Shaders()
     }
 
     const char *fShaderSource = "#version 330 core\n\
+        uniform vec4 vertexColor;\n\
         out vec4 FragColor;\n\
         void main()\n\
         {\n\
-            FragColor = vec4(0.1f, 0.8f, 0.1f, 1.0f);\n\
+            // FragColor = vec4(0.1f, 0.8f, 0.1f, 1.0f);\n\
+            FragColor = vertexColor;\n\
         }\0";
 
     unsigned int fShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -205,6 +217,12 @@ void initTriangle2Shaders()
     glDeleteShader(fShader);
 }
 
+void queryInfo(void)
+{
+    int attribLen;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &attribLen);
+    fprintf(stdout, "Maximum nr of vertex attributes supported: %d\n", attribLen);
+}
 void initRectangleGPUMem(void)
 {
     float vertices[] = {
@@ -262,11 +280,16 @@ int main(int argc, char *argv[])
     // initRectangleGPUMem();
     initTriangleShaders();
     initTriangle2Shaders();
+
+    int vertexColorLocation = glGetUniformLocation(shaderprog2, "vertexColor");
+
     // glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     while (!glfwWindowShouldClose(window))
     {
+        double time = glfwGetTime();
+        float greenValue = (float)((sin(time) / 2.0) + 0.5);
         processInput(window);
-        glClearColor(red_channel, green_channel, blue_channel, 1.0f);
+        glClearColor(greenValue, green_channel, blue_channel, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // render loop
@@ -276,6 +299,7 @@ int main(int argc, char *argv[])
 
 
         glUseProgram(shaderprog2);
+        glUniform4f(vertexColorLocation, 0.2, greenValue, 0.2, 0.2);
         glBindVertexArray(triangle2_VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         // glBindVertexArray(rectangle_VAO);
@@ -287,6 +311,8 @@ int main(int argc, char *argv[])
 
     glDeleteVertexArrays(1, &triangle1_VAO);
     glDeleteBuffers(1, &triangle1_VBO);
+
+    queryInfo();
     // glDeleteVertexArrays(1, &rectangle_VAO);
     // glDeleteBuffers(1, &rectangle_VBO);
     // glDeleteBuffers(1, &rectangle_EBO);
