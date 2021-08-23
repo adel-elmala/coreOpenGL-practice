@@ -3,24 +3,28 @@
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
+#include "shader.h"
 
-//  globals
+//  --------------- globals Start here --------------- 
+//  --------------- globals Start here --------------- 
+
 float red_channel = (double)random() / RAND_MAX;
 float green_channel = (double)random() / RAND_MAX;
 float blue_channel = (double)random() / RAND_MAX;
-
 double color_step = 1.0 / 256.0;
+
 unsigned int triangle1_VAO;
 unsigned int triangle1_VBO;
-unsigned int shaderprog1;
 
 unsigned int triangle2_VAO;
 unsigned int triangle2_VBO;
-unsigned int shaderprog2;
 
 unsigned int rectangle_VBO;
 unsigned int rectangle_VAO;
 unsigned int rectangle_EBO;
+
+//  --------------- globals Ends here --------------- 
+//  --------------- globals Ends here --------------- 
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -64,7 +68,7 @@ void initTriangleGpuMem(void)
     glBufferData(GL_ARRAY_BUFFER, sizeof(verticies1), verticies1, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
@@ -86,143 +90,6 @@ void initTriangleGpuMem(void)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void initTriangleShaders()
-{
-    const char *const vShaderSource = "#version 330 core\n\
-        layout(location = 0) in vec3 aPos;\n\
-        layout(location = 1) in vec3 aColor;\n\
-        out vec3 pixelColor;\n\
-        void main()\n\
-        {\
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n\
-            pixelColor = aColor;\n\
-        }\0";
-
-    unsigned int vShaderID = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vShaderID, 1, &vShaderSource, NULL);
-    glCompileShader(vShaderID);
-
-    int status;
-    char infoLog[512];
-    glGetShaderiv(vShaderID, GL_COMPILE_STATUS, &status);
-    if (!status)
-    {
-        glGetShaderInfoLog(vShaderID, 512, NULL, infoLog);
-        fprintf(stderr, "Vertex Shader Failed to compile.\n%s\n", infoLog);
-    }
-
-    const char *const fShaderSource = "#version 330 core\n\
-        in vec3 pixelColor;\n\
-        out vec4 FragColor;\n\
-        void main()\n\
-        {\n\
-            // FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n\
-            FragColor = vec4(pixelColor, 1.0f);\n\
-        }\0";
-    unsigned int fShaderID = 0;
-    fShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fShaderID, 1, &fShaderSource, NULL);
-    glCompileShader(fShaderID);
-
-    int fStatus;
-    char fInfoLog[512];
-    glGetShaderiv(fShaderID, GL_COMPILE_STATUS, &fStatus);
-    if (!fStatus)
-    {
-        glGetShaderInfoLog(fShaderID, 512, NULL, fInfoLog);
-        fprintf(stderr, "Fragment Shader Failed to compile.\n%s\n", fInfoLog);
-    }
-
-    shaderprog1 = glCreateProgram();
-    glAttachShader(shaderprog1, vShaderID);
-    glAttachShader(shaderprog1, fShaderID);
-    glLinkProgram(shaderprog1);
-
-    int pStatus;
-    char pInfoLog[512];
-    glGetProgramiv(shaderprog1, GL_LINK_STATUS, &pStatus);
-    if (!pStatus)
-    {
-        glGetProgramInfoLog(shaderprog1, 512, NULL, pInfoLog);
-        fprintf(stderr, "Shader program Failed to link.\n%s\n", pInfoLog);
-    }
-    // glUseProgram(shaderprog1);
-
-    glDeleteShader(vShaderID);
-    glDeleteShader(fShaderID);
-}
-
-void initTriangle2Shaders()
-{
-    const char *vShaderSource = "#version 330 core\n\
-        layout(location = 0) in vec3 aPos;\n\
-        // out vec4 vertexColor;\n\
-        void main()\n\
-        {\
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n\
-            // vertexColor = vec4(0.9,0.2,0.2,1.0);\n\
-        }\0";
-
-    unsigned int vShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vShader, 1, &vShaderSource, NULL);
-    glCompileShader(vShader);
-
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vShader, 512, NULL, infoLog);
-        fprintf(stderr, "Vertex Shader Error: %s\n", infoLog);
-    }
-
-    const char *fShaderSource = "#version 330 core\n\
-        uniform vec4 vertexColor;\n\
-        out vec4 FragColor;\n\
-        void main()\n\
-        {\n\
-            // FragColor = vec4(0.1f, 0.8f, 0.1f, 1.0f);\n\
-            FragColor = vertexColor;\n\
-        }\0";
-
-    unsigned int fShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fShader, 1, &fShaderSource, NULL);
-    glCompileShader(fShader);
-
-    int success2;
-    char infoLog2[512];
-    glGetShaderiv(fShader, GL_COMPILE_STATUS, &success2);
-    if (!success2)
-    {
-        glGetShaderInfoLog(fShader, 512, NULL, infoLog2);
-        fprintf(stderr, "Fragment Shader Error: %s\n", infoLog2);
-    }
-
-    shaderprog2 = glCreateProgram();
-    glAttachShader(shaderprog2, vShader);
-    glAttachShader(shaderprog2, fShader);
-    glLinkProgram(shaderprog2);
-
-    int pStatus;
-    char pInfoLog[512];
-    glGetProgramiv(shaderprog2, GL_LINK_STATUS, &pStatus);
-    if (!pStatus)
-    {
-        glGetProgramInfoLog(shaderprog2, 512, NULL, pInfoLog);
-        fprintf(stderr, "Shader program Failed to link.\n%s\n", pInfoLog);
-    }
-    // glUseProgram(shaderprog2);
-
-    glDeleteShader(vShader);
-    glDeleteShader(fShader);
-}
-
-void queryInfo(void)
-{
-    int attribLen;
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &attribLen);
-    fprintf(stdout, "Maximum nr of vertex attributes supported: %d\n", attribLen);
-}
 void initRectangleGPUMem(void)
 {
     float vertices[] = {
@@ -253,6 +120,7 @@ void initRectangleGPUMem(void)
 }
 int main(int argc, char *argv[])
 {
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -278,33 +146,43 @@ int main(int argc, char *argv[])
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     initTriangleGpuMem();
     // initRectangleGPUMem();
-    initTriangleShaders();
-    initTriangle2Shaders();
+    shader triangle1Shader;
+    triangle1Shader.addVertexShader("./shaders/vShader.vs");
+    triangle1Shader.addFragmentShader("./shaders/fShader.fs");
+    triangle1Shader.createProgram();
 
-    int vertexColorLocation = glGetUniformLocation(shaderprog2, "vertexColor");
+    shader triangle2Shader;
+    triangle2Shader.addVertexShader("./shaders/vShader2.vs");
+    triangle2Shader.addFragmentShader("./shaders/fShader2.fs");
+    triangle2Shader.createProgram();
 
     // glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     while (!glfwWindowShouldClose(window))
     {
+        processInput(window);
+        
         double time = glfwGetTime();
         float greenValue = (float)((sin(time) / 2.0) + 0.5);
-        processInput(window);
+        
         glClearColor(greenValue, green_channel, blue_channel, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // render loop
-        glUseProgram(shaderprog1);
+        // -------- render logic start -------- 
+        triangle1Shader.useProgram();
         glBindVertexArray(triangle1_VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
+        triangle2Shader.useProgram();
+        triangle2Shader.setUniform4f("vertexColor", 0.2, greenValue, greenValue, 0.2);
 
-        glUseProgram(shaderprog2);
-        glUniform4f(vertexColorLocation, 0.2, greenValue, 0.2, 0.2);
         glBindVertexArray(triangle2_VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         // glBindVertexArray(rectangle_VAO);
         // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+
+        // -------- render logic ends -------- 
+        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -312,7 +190,7 @@ int main(int argc, char *argv[])
     glDeleteVertexArrays(1, &triangle1_VAO);
     glDeleteBuffers(1, &triangle1_VBO);
 
-    queryInfo();
+    // queryInfo();
     // glDeleteVertexArrays(1, &rectangle_VAO);
     // glDeleteBuffers(1, &rectangle_VBO);
     // glDeleteBuffers(1, &rectangle_EBO);

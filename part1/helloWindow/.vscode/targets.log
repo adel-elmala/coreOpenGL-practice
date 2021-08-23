@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Aug 21 15:56:04 2021
+# Make data base, printed on Mon Aug 23 20:06:10 2021
 
 # Variables
 
@@ -26,8 +26,8 @@ DESKTOP_SESSION = ubuntu
 .SHELLFLAGS := -c
 # environment
 XDG_SESSION_CLASS = user
-# makefile (from '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile', line 9)
-SRC = helloWindow.cpp /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/glad/src/glad.c
+# makefile (from '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile', line 12)
+SRC = helloWindow.cpp /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/glad/src/glad.c ./shader.cpp
 # environment
 XDG_SESSION_TYPE = x11
 # environment
@@ -51,7 +51,7 @@ VTE_VERSION = 6003
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
 # environment
-JOURNAL_STREAM = 8:38938
+JOURNAL_STREAM = 8:36161
 # makefile (from '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile', line 2)
 CFLAGS = -Wall -pedantic -g
 # environment
@@ -71,13 +71,13 @@ MANDATORY_PATH = /usr/share/gconf/ubuntu.mandatory.path
 # environment
 XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
 # environment
-DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus,guid=701ab2e380072e60383d38796120ca76
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus,guid=5d72149b0058339e6bc6ecea6123c392
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
 _ = /usr/bin/code
 # environment
-MANAGERPID = 1109
+MANAGERPID = 1102
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # environment
@@ -91,7 +91,7 @@ PATH = /home/adel/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-SESSION_MANAGER = local/adel:@/tmp/.ICE-unix/1482,unix/adel:/tmp/.ICE-unix/1482
+SESSION_MANAGER = local/adel:@/tmp/.ICE-unix/1423,unix/adel:/tmp/.ICE-unix/1423
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -101,7 +101,7 @@ VSCODE_LOG_STACK = false
 # environment
 VSCODE_CRASH_REPORTER_START_OPTIONS = {"companyName":"Microsoft","productName":"VSCode","submitURL":"appcenter://code?aid=fba07a4d-84bd-4fc8-a125-9640fc8ce171&uid=83dfd14d-8ffd-4887-9be5-82e66370eac7&iid=83dfd14d-8ffd-4887-9be5-82e66370eac7&sid=83dfd14d-8ffd-4887-9be5-82e66370eac7","uploadToServer":true}
 # environment
-INVOCATION_ID = d8c002d84f524afaa20a4dfcdec6fd40
+INVOCATION_ID = bc3c50c302eb46faa7190510d06a7dfd
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -121,7 +121,7 @@ PWD = /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 1442
+SSH_AGENT_PID = 1388
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -167,7 +167,7 @@ CC = g++
 # environment
 GNOME_SHELL_SESSION_MODE = ubuntu
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-14131483-c98e-4944-a0f2-ffcbe26914b7.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-ed1b98de-c04b-4ecd-9db6-4cb0fb22f41c.sock
 # environment
 OMP_NUM_THREADS = 4
 # default
@@ -178,8 +178,8 @@ USER = adel
 LC_MONETARY = en_CA.UTF-8
 # makefile
 .DEFAULT_GOAL := helloWindow
-# makefile (from '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile', line 4)
-INCLUDE = -I /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/glad/include
+# makefile (from '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile', line 5)
+INCLUDE = -I /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/glad/include -I.
 # environment
 XDG_CURRENT_DESKTOP = Unity
 # automatic
@@ -232,14 +232,14 @@ LC_MEASUREMENT = en_CA.UTF-8
 LC_ALL = C
 # environment
 DBUS_STARTER_BUS_TYPE = session
-# makefile (from '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile', line 6)
+# makefile (from '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile', line 8)
 LIBS = -lglfw3 -lGL  -lX11 -lpthread -lXrandr -lXi -ldl
 # environment
-GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/8a898b96_ea6a_4167_893b_f8204f6734c0
+GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/3e308163_0c22_44d7_b19e_7e7bd28d8384
 # automatic
 ^F = $(notdir $^)
 # environment
-GNOME_TERMINAL_SERVICE = :1.187
+GNOME_TERMINAL_SERVICE = :1.109
 # default
 SUFFIXES := 
 # environment
@@ -259,11 +259,11 @@ LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 9170
+VSCODE_PID = 3540
 # environment
-DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=701ab2e380072e60383d38796120ca76
+DBUS_STARTER_ADDRESS = unix:path=/run/user/1000/bus,guid=5d72149b0058339e6bc6ecea6123c392
 # variable set hash-table stats:
-# Load=125/1024=12%, Rehash=0, Collisions=20/155=13%
+# Load=125/1024=12%, Rehash=0, Collisions=22/159=14%
 
 # Pattern-specific Variable Values
 
@@ -288,22 +288,28 @@ all:
 #  File does not exist.
 #  File has not been updated.
 
-helloWindow: helloWindow.cpp /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/glad/src/glad.c
+helloWindow: helloWindow.cpp /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/glad/src/glad.c shader.cpp
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile', line 13):
+#  recipe to execute (from '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile', line 15):
 	$(CC) $(CFLAGS) $(INCLUDE) $^ -o $@ $(LIBS)
 
 # Not a target:
 /media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/helloWindow/Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2021-08-20 13:31:11.2774488
+#  Last modified 2021-08-23 20:05:59.5920518
 #  File has been updated.
 #  Successfully updated.
 
 # Not a target:
 .DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+shader.cpp:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -321,19 +327,19 @@ helloWindow.cpp:
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=7/1024=1%, Rehash=0, Collisions=0/19=0%
+# Load=8/1024=1%, Rehash=0, Collisions=0/21=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 9 / storage = 322 B / avg = 35 B
-# current buf: size = 8162 B / used = 322 B / count = 9 / avg = 35 B
+# strcache buffers: 1 (0) / strings = 10 / storage = 333 B / avg = 33 B
+# current buf: size = 8162 B / used = 333 B / count = 10 / avg = 33 B
 
-# strcache performance: lookups = 13 / hit rate = 30%
+# strcache performance: lookups = 14 / hit rate = 28%
 # hash-table stats:
-# Load=9/8192=0%, Rehash=0, Collisions=0/13=0%
-# Finished Make data base on Sat Aug 21 15:56:04 2021
+# Load=10/8192=0%, Rehash=0, Collisions=0/14=0%
+# Finished Make data base on Mon Aug 23 20:06:10 2021
 
  
