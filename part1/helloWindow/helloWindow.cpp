@@ -5,8 +5,11 @@
 #include <cstdlib>
 #include "shader.h"
 
-//  --------------- globals Start here --------------- 
-//  --------------- globals Start here --------------- 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+//  --------------- globals Start here ---------------
+//  --------------- globals Start here ---------------
 
 float red_channel = (double)random() / RAND_MAX;
 float green_channel = (double)random() / RAND_MAX;
@@ -23,8 +26,11 @@ unsigned int rectangle_VBO;
 unsigned int rectangle_VAO;
 unsigned int rectangle_EBO;
 
-//  --------------- globals Ends here --------------- 
-//  --------------- globals Ends here --------------- 
+unsigned int txture1{};
+unsigned int txture2{};
+
+//  --------------- globals Ends here ---------------
+//  --------------- globals Ends here ---------------
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -93,11 +99,12 @@ void initTriangleGpuMem(void)
 void initRectangleGPUMem(void)
 {
     float vertices[] = {
-        0.5f, 0.5f, 0.0f,   // top right
-        0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f   // top left};
+        0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
+        0.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+        -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+        -1.0f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left};
     };
+
     unsigned int indicies[6] = {0, 1, 3,
                                 1, 2, 3};
     glGenVertexArrays(1, &rectangle_VAO);
@@ -111,13 +118,42 @@ void initRectangleGPUMem(void)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rectangle_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 6, (void *)indicies, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(sizeof(float) * 3));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(sizeof(float) * 6));
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
+
+void initTextures(const char *imgPath, unsigned int *textureID,GLenum textureUnit = GL_TEXTURE0)
+{
+    glGenTextures(1, textureID);
+    glActiveTexture(textureUnit);
+    glBindTexture(GL_TEXTURE_2D, *textureID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, channels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char *data = stbi_load(imgPath, &width, &height, &channels, 0);
+    if (data != NULL)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, (void *)data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+        fprintf(stderr, "Failed to load image: [%s]\n",imgPath);
+    stbi_image_free(data);
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -126,7 +162,7 @@ int main(int argc, char *argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(800, 600, "Test Window", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -145,32 +181,41 @@ int main(int argc, char *argv[])
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     initTriangleGpuMem();
+    initRectangleGPUMem();
     // initRectangleGPUMem();
+    initTextures("./resources/img1.jpg",&txture1,GL_TEXTURE0);
+    initTextures("./resources/img2.jpg",&txture2,GL_TEXTURE1);
+
     shader triangle1Shader;
-    triangle1Shader.addVertexShader("./shaders/vShader.vs");
-    triangle1Shader.addFragmentShader("./shaders/fShader.fs");
+    triangle1Shader.addVertexShader("./shaders/vShader.vert");
+    triangle1Shader.addFragmentShader("./shaders/fShader.frag");
     triangle1Shader.createProgram();
+    triangle1Shader.useProgram();
+    triangle1Shader.setUniform1i("Tex1",0);
+    triangle1Shader.setUniform1i("Tex2",1);
 
     shader triangle2Shader;
-    triangle2Shader.addVertexShader("./shaders/vShader2.vs");
-    triangle2Shader.addFragmentShader("./shaders/fShader2.fs");
+    triangle2Shader.addVertexShader("./shaders/vShader2.vert");
+    triangle2Shader.addFragmentShader("./shaders/fShader2.frag");
     triangle2Shader.createProgram();
+
 
     // glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-        
+
         double time = glfwGetTime();
         float greenValue = (float)((sin(time) / 2.0) + 0.5);
-        
+
         glClearColor(greenValue, green_channel, blue_channel, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // -------- render logic start -------- 
+        // -------- render logic start --------
         triangle1Shader.useProgram();
-        glBindVertexArray(triangle1_VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glBindVertexArray(triangle1_VAO);
+        glBindVertexArray(rectangle_VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         triangle2Shader.useProgram();
         triangle2Shader.setUniform4f("vertexColor", 0.2, greenValue, greenValue, 0.2);
@@ -180,9 +225,8 @@ int main(int argc, char *argv[])
         // glBindVertexArray(rectangle_VAO);
         // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+        // -------- render logic ends --------
 
-        // -------- render logic ends -------- 
-        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

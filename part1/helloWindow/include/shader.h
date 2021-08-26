@@ -25,6 +25,8 @@ public:
     void useProgram();
     // uniform shader variable setters
     void setUniform4f(const char *name, float v0, float v1, float v2, float v3);
+    void setUniform1i(const char *name, int value);
+
 };
 
 #endif // SHADER_H

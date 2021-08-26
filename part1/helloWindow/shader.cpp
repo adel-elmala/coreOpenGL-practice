@@ -120,3 +120,9 @@ void shader::setUniform4f(const char *name, float v0, float v1, float v2, float 
     int uniformLocation = glGetUniformLocation(this->programID, name);
     glUniform4f(uniformLocation, v0,v1,v2,v3);
 }
+
+void shader::setUniform1i(const char *name, int value)
+{
+    int uniformLocation = glGetUniformLocation(this->programID, name);
+    glUniform1i(uniformLocation, value);
+}
