@@ -8,7 +8,7 @@
 
 class shader
 {
-private:
+public:
     /* data */
     unsigned int programID;
     unsigned int vShader;
@@ -26,6 +26,8 @@ public:
     // uniform shader variable setters
     void setUniform4f(const char *name, float v0, float v1, float v2, float v3);
     void setUniform1i(const char *name, int value);
+    void setUniform1f(const char *name, float value);
+
 
 };
 
