@@ -37,19 +37,31 @@ int main(int argc, char *argv[])
     rectShader.createProgram();
     rectShader.useProgram();
 
-    initTextures("./resources/img1.jpg", &rect_tex);
+    initTextures("./resources/img2.jpg", &rect_tex);
     rectShader.setUniform1i("texture", 0);
 
     glm::mat4 identity = glm::mat4(1.0f);
-    glm::mat4 view = glm::translate(identity, glm::vec3(0.0f, 0.0f, -3.0f));
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), ((float)winWidth) / winHeight, 0.1f, 100.f);
 
     unsigned int modelLoc = glGetUniformLocation(rectShader.programID, "model");
     unsigned int viewLoc = glGetUniformLocation(rectShader.programID, "view");
     unsigned int projectionLoc = glGetUniformLocation(rectShader.programID, "projection");
 
+    glm::mat4 view = glm::translate(identity, glm::vec3(0.0f, 0.0f, -3.0f));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(2.0f, 5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f, 3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f, 2.0f, -2.5f),
+        glm::vec3(1.5f, 0.2f, -1.5f),
+        glm::vec3(-1.3f, 1.0f, -1.5f)};
 
     while (!glfwWindowShouldClose(window))
     {
@@ -58,14 +70,18 @@ int main(int argc, char *argv[])
         double time = glfwGetTime();
         float val = sin((float)time);
 
-        glm::mat4 model = glm::rotate(identity, (float)time * glm::radians(-50.f), glm::vec3(1.0f, val, 0.0f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
         glClearColor(val, 0.4f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindVertexArray(rect_vao);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (int i = 0; i < 10; ++i)
+        {
+
+            glm::mat4 model = glm::translate(identity, cubePositions[i]);
+            model = glm::rotate(model, (float)time * glm::radians(10.f*(i+1)), glm::vec3(1.0f, val, 0.0f));
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
