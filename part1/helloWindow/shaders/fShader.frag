@@ -11,6 +11,7 @@ uniform float alpha;
 
 void main()
 {
+    
     // FragColor = vec4(pixelColor, 1.0f);
     FragColor = mix(texture2D(Tex1,texCoord),
                     texture2D(Tex2,texCoord),
