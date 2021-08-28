@@ -1,0 +1,5 @@
+make boilerPlate -f "/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/boilderPlate/Makefile" --dry-run --keep-going --print-directory
+make: Entering directory '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/boilderPlate'
+g++ -msse2 -Wpedantic -g -I../../common/include -I../../common/3rdLibs/glad/include boilerPlate.cpp  windowIO.cpp ../../common/3rdLibs/glad/src/glad.c ../../common/src/shader.cpp -o ./bin/boilerPlate -lglfw3 -lGL -lX11 -lpthread -lXrandr -lXi -ldl
+make: Leaving directory '/media/adel/1E9A1F939A1F6695/cs-path/gameDev/computerGraphics/openGL-Books/opengl/learnopengl/coreOpenGL-practice/part1/boilderPlate'
+ 

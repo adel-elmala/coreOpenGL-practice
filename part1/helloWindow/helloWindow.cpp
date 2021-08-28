@@ -1,12 +1,17 @@
+#include "shader.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
-#include <cmath>
-#include <cstdlib>
-#include "shader.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#include <iostream>
+#include <cmath>
+#include <cstdlib>
 
 //  --------------- globals Start here ---------------
 //  --------------- globals Start here ---------------
@@ -98,11 +103,12 @@ void initTriangleGpuMem(void)
 
 void initRectangleGPUMem(void)
 {
+
     float vertices[] = {
-        0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
-        0.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+        0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f,   // top right
+        0.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, 0.0f,  // bottom right
         -1.0f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -1.0f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left};
+        -1.0f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 2.0f   // top left};
     };
 
     unsigned int indicies[6] = {0, 1, 3,
@@ -130,14 +136,14 @@ void initRectangleGPUMem(void)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void initTextures(const char *imgPath, unsigned int *textureID,GLenum textureUnit = GL_TEXTURE0)
+void initTextures(const char *imgPath, unsigned int *textureID, GLenum textureUnit = GL_TEXTURE0)
 {
     glGenTextures(1, textureID);
     glActiveTexture(textureUnit);
     glBindTexture(GL_TEXTURE_2D, *textureID);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -150,7 +156,7 @@ void initTextures(const char *imgPath, unsigned int *textureID,GLenum textureUni
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
-        fprintf(stderr, "Failed to load image: [%s]\n",imgPath);
+        fprintf(stderr, "Failed to load image: [%s]\n", imgPath);
     stbi_image_free(data);
 }
 
@@ -182,23 +188,35 @@ int main(int argc, char *argv[])
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     initTriangleGpuMem();
     initRectangleGPUMem();
-    // initRectangleGPUMem();
-    initTextures("./resources/img1.jpg",&txture1,GL_TEXTURE0);
-    initTextures("./resources/img2.jpg",&txture2,GL_TEXTURE1);
 
-    shader triangle1Shader;
-    triangle1Shader.addVertexShader("./shaders/vShader.vert");
-    triangle1Shader.addFragmentShader("./shaders/fShader.frag");
-    triangle1Shader.createProgram();
-    triangle1Shader.useProgram();
-    triangle1Shader.setUniform1i("Tex1",0);
-    triangle1Shader.setUniform1i("Tex2",1);
+    initTextures("./resources/img1.jpg", &txture1, GL_TEXTURE0);
+    initTextures("./resources/img2.jpg", &txture2, GL_TEXTURE1);
 
-    shader triangle2Shader;
-    triangle2Shader.addVertexShader("./shaders/vShader2.vert");
-    triangle2Shader.addFragmentShader("./shaders/fShader2.frag");
-    triangle2Shader.createProgram();
+    shader rectangleShader;
+    rectangleShader.addVertexShader("./shaders/vShader.vert");
+    rectangleShader.addFragmentShader("./shaders/fShader.frag");
+    rectangleShader.createProgram();
+    rectangleShader.useProgram();
+    rectangleShader.setUniform1i("Tex1", 0);
+    rectangleShader.setUniform1i("Tex2", 1);
+    unsigned int transformLoc = glGetUniformLocation(rectangleShader.programID, "transform");
+    glm::mat4 trans = glm::mat4(1.0f);
 
+    // shader triangle2Shader;
+    // triangle2Shader.addVertexShader("./shaders/vShader2.vert");
+    // triangle2Shader.addFragmentShader("./shaders/fShader2.frag");
+    // triangle2Shader.createProgram();
+
+    shader rectangle2Shader;
+    rectangle2Shader.addVertexShader("./shaders/vShader.vert");
+    rectangle2Shader.addFragmentShader("./shaders/fShader.frag");
+    rectangle2Shader.createProgram();
+    rectangle2Shader.useProgram();
+    rectangle2Shader.setUniform1i("Tex1", 0);
+    rectangle2Shader.setUniform1i("Tex2", 1);
+    unsigned int transformLoc2 = glGetUniformLocation(rectangle2Shader.programID, "transform");
+    // glUniformMatrix4fv(transformLoc2,1,GL_FALSE,glm::value_ptr(trans));
+    // glm::mat4 trans = glm::mat4(1.0f);
 
     // glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     while (!glfwWindowShouldClose(window))
@@ -212,16 +230,29 @@ int main(int argc, char *argv[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         // -------- render logic start --------
-        triangle1Shader.useProgram();
+        rectangleShader.useProgram();
+        rectangleShader.setUniform1f("alpha", greenValue);
+
+        // trans = glm::rotate(trans,glm::radians(45.0f),glm::vec3(0.0f,0.0f,1.0f));
+        glm::mat4 scaled = glm::scale(trans, glm::vec3(0.5, 0.5, 1.0));
+        glm::mat4 rotated = glm::rotate(scaled, (float)time, glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 finalTrans = glm::translate(rotated,glm::vec3(1.0,1.0,0));
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(finalTrans));
+
         // glBindVertexArray(triangle1_VAO);
         glBindVertexArray(rectangle_VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        triangle2Shader.useProgram();
-        triangle2Shader.setUniform4f("vertexColor", 0.2, greenValue, greenValue, 0.2);
+        // triangle2Shader.useProgram();
+        // triangle2Shader.setUniform4f("vertexColor", 0.2, greenValue, greenValue, 0.2);
+        rectangle2Shader.useProgram();
+        glm::mat4 scaled2 = glm::scale(trans, glm::vec3(greenValue, greenValue, 1.0f));
+        glUniformMatrix4fv(transformLoc2,1,GL_FALSE,glm::value_ptr(scaled2));
+        glBindVertexArray(rectangle_VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)0);
 
-        glBindVertexArray(triangle2_VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
+
         // glBindVertexArray(rectangle_VAO);
         // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
