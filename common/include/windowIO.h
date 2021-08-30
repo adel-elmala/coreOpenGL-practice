@@ -8,7 +8,7 @@
 
 
 GLFWwindow *initWindow(int width, int height, const char *title);
-void processInput(GLFWwindow *window);
+// void processInput(GLFWwindow *window);
 void resizeCallBack(GLFWwindow *window, int width, int height);
 
 #endif

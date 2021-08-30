@@ -27,11 +27,6 @@ GLFWwindow *initWindow(int width, int height, const char *title)
     return window;
 }
 
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
 
 void resizeCallBack(GLFWwindow *window, int width, int height)
 {

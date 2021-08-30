@@ -16,11 +16,21 @@ unsigned int rect_vbo;
 unsigned int rect_tex;
 const int winWidth = 720;
 const int winHeight = 500;
+
+glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 camFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+float deltaTime = 0.0f;
+float lastFrameTime = 0.0f;
+
 // --------- globals -------------
 
 // --------- forward declerations -------------
 void initCubeGPUMem(void);
 void initTextures(const char *imgPath, unsigned int *texID, GLenum texUnit = GL_TEXTURE0);
+void processInput(GLFWwindow *window);
+void cursorCallBack(GLFWwindow *window, double x, double y);
 
 // --------- forward declerations -------------
 
@@ -42,14 +52,16 @@ int main(int argc, char *argv[])
 
     glm::mat4 identity = glm::mat4(1.0f);
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), ((float)winWidth) / winHeight, 0.1f, 100.f);
+    // glm::mat4 view = glm::translate(identity, glm::vec3(0.0f, 0.0f, -3.0f));
 
     unsigned int modelLoc = glGetUniformLocation(rectShader.programID, "model");
     unsigned int viewLoc = glGetUniformLocation(rectShader.programID, "view");
     unsigned int projectionLoc = glGetUniformLocation(rectShader.programID, "projection");
 
-    glm::mat4 view = glm::translate(identity, glm::vec3(0.0f, 0.0f, -3.0f));
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, cursorCallBack);
 
     glm::vec3 cubePositions[] = {
         glm::vec3(0.0f, 0.0f, 0.0f),
@@ -67,18 +79,28 @@ int main(int argc, char *argv[])
     {
         processInput(window);
 
-        double time = glfwGetTime();
-        float val = sin((float)time);
+        float currentTime = (float)glfwGetTime();
+        deltaTime = currentTime - lastFrameTime;
+        lastFrameTime = currentTime;
+
+        float val = sin(currentTime);
 
         glClearColor(val, 0.4f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         glBindVertexArray(rect_vao);
+        float radius = 20.0f;
+        // float camX = cos((float)time) * radius;
+        // float camZ = val * radius;
+        glm::mat4 view = glm::lookAt(camPos,
+                                     camPos + camFront,
+                                     camUp);
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
         for (int i = 0; i < 10; ++i)
         {
 
             glm::mat4 model = glm::translate(identity, cubePositions[i]);
-            model = glm::rotate(model, (float)time * glm::radians(10.f*(i+1)), glm::vec3(1.0f, val, 0.0f));
+            model = glm::rotate(model, currentTime * glm::radians(10.f * (i + 1)), glm::vec3(1.0f, val, 0.0f));
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
@@ -190,4 +212,63 @@ void initTextures(const char *imgPath, unsigned int *texID, GLenum texUnit)
     else
         fprintf(stderr, "Failed to load image: [%s]\n", imgPath);
     stbi_image_free(data);
+}
+
+void processInput(GLFWwindow *window)
+{
+    const float camSpeed = 2.5f * deltaTime;
+
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+
+        camPos += camFront * camSpeed;
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camPos -= camFront * camSpeed;
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camPos += glm::normalize(glm::cross(camUp, camFront)) * camSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camPos -= glm::normalize(glm::cross(camUp, camFront)) * camSpeed;
+}
+
+void cursorCallBack(GLFWwindow *window, double x, double y)
+{
+    static double lastX = winWidth / 2;
+    static double lastY = winHeight / 2;
+    static bool firstMouse = true;
+    static double pitch = 0;
+    static double yaw = 180;
+
+    if (firstMouse)
+    {
+        lastX = x;
+        lastY = y;
+        firstMouse = false;
+    }
+
+    double offsetX = x - lastX;
+    double offsetY = lastY - y;
+    lastX = x;
+    lastY = y;
+
+    const double sensitivity = 0.1;
+    offsetX *= sensitivity;
+    offsetY *= sensitivity;
+
+    yaw -= offsetX;
+    pitch += offsetY;
+
+    if (pitch > 89.0)
+        pitch = 89.0;
+    if (pitch < -89.0)
+        pitch = -89.0;
+
+    glm::vec3 direction;
+    direction.x = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    camFront = glm::normalize(direction);
 }
