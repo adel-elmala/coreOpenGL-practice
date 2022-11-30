@@ -25,6 +25,7 @@ void initTriangleData();
 
 void initCube(void);
 void initTexture(const char *);
+void mouse_callback(GLFWwindow *window, double x, double y);
 // ============  Declarations  ============
 
 // ============  Globals  ============
@@ -35,6 +36,11 @@ unsigned int Triangle_VAO;
 unsigned int cube_VBO;
 unsigned int cube_EBO;
 unsigned int cube_VAO;
+
+glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
+float deltaTime = 0.0f;
 // ============  Globals  ============
 
 int main(int argc, const char *argv[])
@@ -45,6 +51,8 @@ int main(int argc, const char *argv[])
     glViewport(0, 0, 800, 800);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
     // initTriangleData();
     initCube();
 
@@ -64,7 +72,7 @@ int main(int argc, const char *argv[])
     glm::mat4 view(1.0f);
     glm::mat4 projection(1.0f);
     model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0, 0.0, 0.0));
-    view = glm::translate(view, glm::vec3(0.0, 0.0, -3.0));
+    // view = glm::translate(view, glm::vec3(0.0, 0.0, -3.0));
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -76,7 +84,7 @@ int main(int argc, const char *argv[])
     glEnable(GL_DEPTH_TEST);
 
     glm::vec3 cubePositions[] = {
-        glm::vec3(0.0f, 0.0f,0.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(2.0f, 5.0f, -15.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
         glm::vec3(-3.8f, -2.0f, -12.3f),
@@ -86,7 +94,8 @@ int main(int argc, const char *argv[])
         glm::vec3(1.5f, 2.0f, -2.5f),
         glm::vec3(1.5f, 0.2f, -1.5f),
         glm::vec3(-1.3f, 1.0f, -1.5f)};
-
+    float currentTime = 0.0f;
+    float lastTime = 0.0f;
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -94,7 +103,13 @@ int main(int argc, const char *argv[])
         transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f));
         glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(transform));
 
+        currentTime = glfwGetTime();
+        deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
         processInput(window);
+
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -105,12 +120,12 @@ int main(int argc, const char *argv[])
         glUniform4f(vColorLocation, 0.0f, green, 0.0f, 1.0f);
         glBindVertexArray(cube_VAO);
 
-        for(int i = 0 ; i < 10 ; ++i)
+        for (int i = 0; i < 10; ++i)
         {
             glm::mat4 model(1.0f);
 
-            model = glm::translate(model,cubePositions[i]);
-            model = glm::rotate(model,(float)glfwGetTime()+i,glm::vec3(1.0f,1.0f,1.0f));
+            model = glm::translate(model, cubePositions[i]);
+            model = glm::rotate(model, (float)glfwGetTime() + i, glm::vec3(1.0f, 1.0f, 1.0f));
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -161,8 +176,24 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 void processInput(GLFWwindow *window)
 {
+    float cameraSpeed = 2.5 * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+
+        cameraPos += cameraFront * cameraSpeed;
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+
+        cameraPos -= cameraFront * cameraSpeed;
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 
 void initTriangleData()
@@ -288,4 +319,33 @@ void initCube(void)
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+}
+
+void mouse_callback(GLFWwindow *window, double x, double y)
+{
+    // std::cout << "x: " << x << "y: " << y << std::endl;
+    static double lastX = x;
+    static double lastY = y;
+    static double pitch = 0.0;
+    static double yaw = -90.0;
+
+    double xOffset = x - lastX;
+    double yOffset = y - lastY;
+    double sensitivety = 0.1;
+    lastX = x;
+    lastY = y;
+
+    pitch += (-yOffset) * sensitivety;
+    yaw += xOffset * sensitivety;
+
+    if (pitch > 89.0)
+        pitch = 89.0;
+    else if (pitch < -89.0)
+        pitch = -89.0;
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+    cameraFront = glm::normalize(direction);
 }
