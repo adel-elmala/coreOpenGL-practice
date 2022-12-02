@@ -1,5 +1,5 @@
 CC = g++ 
-CFLAGS = -Wall -pedantic
+CFLAGS = -Wall -pedantic -g
 
 INCLUDE = -I../Deps/include 
 

@@ -26,113 +26,103 @@ void initTriangleData();
 void initCube(void);
 void initTexture(const char *);
 void mouse_callback(GLFWwindow *window, double x, double y);
+
+void renderLightCube(Shader);
 // ============  Declarations  ============
 
 // ============  Globals  ============
-unsigned int Triangle_VBO;
-unsigned int Triangle_EBO;
-unsigned int Triangle_VAO;
-
 unsigned int cube_VBO;
 unsigned int cube_EBO;
 unsigned int cube_VAO;
+
+unsigned int lightVAO;
 
 glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
 float deltaTime = 0.0f;
+
+glm::vec3 lightPos(3.0f, 3.0f, -10.0f);
 // ============  Globals  ============
 
 int main(int argc, const char *argv[])
 {
 
     GLFWwindow *window = initWindow();
-
     glViewport(0, 0, 800, 800);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
-    // initTriangleData();
+
     initCube();
+    glClearColor(0.3, 0.3, 0.2, 1.0);
+    glEnable(GL_DEPTH_TEST);
 
     glActiveTexture(GL_TEXTURE0);
     initTexture("./img0.jpg");
 
     glActiveTexture(GL_TEXTURE1);
     initTexture("./img1.jpg");
+
     Shader shaderProg("./vShader.vs", "./fShader.fs");
     shaderProg.use();
-    int transLoc = glGetUniformLocation(shaderProg.shaderID, "trans");
+
     int modelLoc = glGetUniformLocation(shaderProg.shaderID, "model");
     int viewLoc = glGetUniformLocation(shaderProg.shaderID, "view");
     int projLoc = glGetUniformLocation(shaderProg.shaderID, "projection");
+    
 
-    glm::mat4 model(1.0f);
     glm::mat4 view(1.0f);
     glm::mat4 projection(1.0f);
-    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0, 0.0, 0.0));
-    // view = glm::translate(view, glm::vec3(0.0, 0.0, -3.0));
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     shaderProg.setInt("tex", 0);
     shaderProg.setInt("tex2", 1);
-    glClearColor(0.3, 0.3, 0.2, 1.0);
-    glEnable(GL_DEPTH_TEST);
 
-    glm::vec3 cubePositions[] = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(2.0f, 5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3(2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f, 3.0f, -7.5f),
-        glm::vec3(1.3f, -2.0f, -2.5f),
-        glm::vec3(1.5f, 2.0f, -2.5f),
-        glm::vec3(1.5f, 0.2f, -1.5f),
-        glm::vec3(-1.3f, 1.0f, -1.5f)};
+    Shader lightShader("./vLightShader.vs", "./fLightShader.fs");
+    renderLightCube(lightShader);
+    int lightViewLoc = glGetUniformLocation(lightShader.shaderID, "view");
+
+
     float currentTime = 0.0f;
     float lastTime = 0.0f;
     // render loop
     while (!glfwWindowShouldClose(window))
     {
-        glm::mat4 transform(1.0f);
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f));
-        glUniformMatrix4fv(transLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         currentTime = glfwGetTime();
         deltaTime = currentTime - lastTime;
         lastTime = currentTime;
         processInput(window);
 
+        shaderProg.use();
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        double time = glfwGetTime();
-        double green = (sin(time) / 2.0) + 0.5;
-        unsigned int vColorLocation = glGetUniformLocation(shaderProg.shaderID, "vColor");
-        shaderProg.use();
-        glUniform4f(vColorLocation, 0.0f, green, 0.0f, 1.0f);
         glBindVertexArray(cube_VAO);
 
-        for (int i = 0; i < 10; ++i)
-        {
-            glm::mat4 model(1.0f);
+        glm::mat4 model(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
+        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-            model = glm::translate(model, cubePositions[i]);
-            model = glm::rotate(model, (float)glfwGetTime() + i, glm::vec3(1.0f, 1.0f, 1.0f));
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         // glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
         // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
+        lightShader.use();
+        glUniformMatrix4fv(lightViewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -194,45 +184,6 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-}
-
-void initTriangleData()
-{
-    // float verticies[] = {1.0f, 0.0f, 0.0f, // Triangle 1 (top right)
-    //                      0.0f, 1.0f, 0.0f,
-    //                      0.0f, 0.0f, 0.0f};
-
-    float verticies[] = {
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f}; // top left
-
-    unsigned int indices[] = {0, 1, 3,  // first triangle
-                              1, 2, 3}; // second triangle
-
-    glGenVertexArrays(1, &Triangle_VAO);
-    glBindVertexArray(Triangle_VAO);
-    // buffer v-data
-    glGenBuffers(1, &Triangle_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, Triangle_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
-    // config v-Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)0);
-    glEnableVertexAttribArray(0);
-    // config v-Color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(sizeof(float) * 3));
-    glEnableVertexAttribArray(1);
-
-    // config v-Tex
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(sizeof(float) * 6));
-    glEnableVertexAttribArray(2);
-    // buffer idx-data
-    glGenBuffers(1, &Triangle_EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Triangle_EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glBindVertexArray(0);
 }
 
 void initTexture(const char *pathName)
@@ -348,4 +299,29 @@ void mouse_callback(GLFWwindow *window, double x, double y)
     direction.y = sin(glm::radians(pitch));
     direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
     cameraFront = glm::normalize(direction);
+}
+
+void renderLightCube(Shader lightShader)
+{
+    // Shader lightShader("./vLightShader.vs", "./fLightShader.fs");
+    lightShader.use();
+    glGenVertexArrays(1, &lightVAO);
+    glBindVertexArray(lightVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_VBO);
+
+    // config v-pos
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void *)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
+    int modelLoc = glGetUniformLocation(lightShader.shaderID, "model");
+    int projLoc = glGetUniformLocation(lightShader.shaderID, "projection");
+
+    glm::mat4 model(1.0f);
+    glm::mat4 projection(1.0f);
+    model = glm::translate(model, lightPos);
+    model = glm::scale(model, glm::vec3(0.2f));
+    projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
