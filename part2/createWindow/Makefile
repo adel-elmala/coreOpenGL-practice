@@ -1,5 +1,5 @@
 CC = g++ 
-CFLAGS = -Wall -pedantic -g
+CFLAGS = -Wall -pedantic -g -Wno-unused-but-set-variable -Wno-sign-compare
 
 INCLUDE = -I../Deps/include 
 
@@ -10,7 +10,7 @@ SRC = createWin.cpp
 SRC += ../Deps/src/glad.c
 
 createWin: $(SRC) 
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRC) $(LIBS) -o ./bin/$@ 
+	@$(CC) $(CFLAGS) $(INCLUDE) $(SRC) $(LIBS) -o ./bin/$@ 
 
 .PHONY:setup,clean,run
 
