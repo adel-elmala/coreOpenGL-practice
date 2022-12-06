@@ -11,6 +11,10 @@
 #include "glm/glm/gtc/matrix_transform.hpp"
 #include "glm/glm/gtc/type_ptr.hpp"
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include "shader.h"
 
 // ============  Declarations  ============
@@ -53,16 +57,13 @@ int main(int argc, const char *argv[])
     glViewport(0, 0, 800, 800);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    // glfwSetCursorPosCallback(window, mouse_callback);
 
     initCube();
     // glClearColor(0.3, 0.3, 0.2, 1.0);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.3, 0.3, 0.3, 1.0);
     glEnable(GL_DEPTH_TEST);
-
-    // glActiveTexture(GL_TEXTURE0);
-    // initTexture("./img0.jpg");
 
     // glActiveTexture(GL_TEXTURE1);
     // initTexture("./img1.jpg");
@@ -70,22 +71,51 @@ int main(int argc, const char *argv[])
     Shader shaderProg("./vShader.vs", "./fShader.fs");
     shaderProg.use();
 
+    shaderProg.setInt("mat.diffuse", 0);
+    glActiveTexture(GL_TEXTURE0);
+    initTexture("./container.jpg");
+    shaderProg.setInt("mat.specular", 1);
+    glActiveTexture(GL_TEXTURE1);
+    initTexture("./container_specular.jpg");
+
+    // initTexture("./container2.png");
+    // initTexture("./img1.jpg");
+
     int modelLoc = glGetUniformLocation(shaderProg.shaderID, "model");
     int viewLoc = glGetUniformLocation(shaderProg.shaderID, "view");
     int projLoc = glGetUniformLocation(shaderProg.shaderID, "projection");
-    int lightColorLoc = glGetUniformLocation(shaderProg.shaderID, "lightColor");
-    int lightPosLoc = glGetUniformLocation(shaderProg.shaderID, "lightPos");
-    int cameraPosLoc = glGetUniformLocation(shaderProg.shaderID, "cameraPos");
-    glUniform3f(lightColorLoc, lightColor.x, lightColor.y, lightColor.z);
-    glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-
     glm::mat4 view(1.0f);
     glm::mat4 projection(1.0f);
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 800.0f, 0.1f, 100.0f);
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    // shaderProg.setInt("tex", 0);
+    // int lightColorLoc = glGetUniformLocation(shaderProg.shaderID, "lightColor");
+    // int lightPosLoc = glGetUniformLocation(shaderProg.shaderID, "lightPos");
+    int cameraPosLoc = glGetUniformLocation(shaderProg.shaderID, "cameraPos");
+    // glUniform3f(lightColorLoc, lightColor.x, lightColor.y, lightColor.z);
+    // glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+
+    int ambientLoc = glGetUniformLocation(shaderProg.shaderID, "mat.ambient");
+    int specularLoc = glGetUniformLocation(shaderProg.shaderID, "mat.specular");
+    int diffuseLoc = glGetUniformLocation(shaderProg.shaderID, "mat.diffuse");
+    int shinenessLoc = glGetUniformLocation(shaderProg.shaderID, "mat.shineness");
+
+    glUniform3f(ambientLoc, 1.0f, 0.5f, 0.31f);
+    glUniform3f(diffuseLoc, 1.0f, 0.5f, 0.31f);
+    glUniform3f(specularLoc, 0.5f, 0.5f, 0.5f);
+    glUniform1f(shinenessLoc, 32.0f);
+
+    int lightPosLoc = glGetUniformLocation(shaderProg.shaderID, "light.position");
+    int lightAmbientLoc = glGetUniformLocation(shaderProg.shaderID, "light.ambient");
+    int lightSpecularLoc = glGetUniformLocation(shaderProg.shaderID, "light.specular");
+    int lightDiffuseLoc = glGetUniformLocation(shaderProg.shaderID, "light.diffuse");
+
+    glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+    glUniform3f(lightAmbientLoc, 0.3f, 0.3f, 0.3f);
+    glUniform3f(lightDiffuseLoc, 0.5f, 0.5f, 0.5f);
+    glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
+
     // shaderProg.setInt("tex2", 1);
 
     Shader lightShader("./vLightShader.vs", "./fLightShader.fs");
@@ -108,7 +138,7 @@ int main(int argc, const char *argv[])
         shaderProg.use();
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniform3f(cameraPosLoc, cameraPos.x,cameraPos.y,cameraPos.z);
+        glUniform3f(cameraPosLoc, cameraPos.x, cameraPos.y, cameraPos.z);
 
         glBindVertexArray(cube_VAO);
 
@@ -127,10 +157,31 @@ int main(int argc, const char *argv[])
         glBindVertexArray(lightVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        {
+            bool show_another_window;
+            ImGui::Begin("Another Window", &show_another_window); // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me"))
+                show_another_window = false;
+            ImGui::End();
+        }
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    //  Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
@@ -139,6 +190,8 @@ GLFWwindow *initWindow()
 {
     // initialize GLFW
     glfwInit();
+    const char *glsl_version = "#version 330";
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -151,14 +204,27 @@ GLFWwindow *initWindow()
         return NULL;
     }
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1); // Enable vsync
 
     // GLAD init
-
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cerr << "GLAD: Failed to initialize GLAD" << std::endl;
         return NULL;
     }
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
     return window;
 }
 
@@ -191,9 +257,9 @@ void processInput(GLFWwindow *window)
 
 void initTexture(const char *pathName)
 {
-    unsigned int texture0;
-    glGenTextures(1, &texture0);
-    glBindTexture(GL_TEXTURE_2D, texture0);
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -217,47 +283,49 @@ void initTexture(const char *pathName)
 void initCube(void)
 {
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 
-        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
 
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f};
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
+
     glGenVertexArrays(1, &cube_VAO);
     glBindVertexArray(cube_VAO);
     // buffer v-data
@@ -265,15 +333,15 @@ void initCube(void)
     glBindBuffer(GL_ARRAY_BUFFER, cube_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     // config v-Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)0);
     glEnableVertexAttribArray(0);
 
     // config v-normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void *)(sizeof(float) * 3));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(sizeof(float) * 3));
     glEnableVertexAttribArray(1);
     // // config v-Tex
-    // glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void *)(sizeof(float) * 3));
-    // glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(sizeof(float) * 6));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 }
@@ -316,7 +384,7 @@ void renderLightCube(Shader lightShader)
     glBindBuffer(GL_ARRAY_BUFFER, cube_VBO);
 
     // config v-pos
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
